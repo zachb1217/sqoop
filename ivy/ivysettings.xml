@@ -51,9 +51,14 @@ under the License.
   <property name="ivy.cache.dir" value="${user.home}/.ivy2/cache"/>
   <property name="maven2.pattern.ext"  value="${maven2.pattern}.[ext]"/>
   <property name="resolvers" value="default" override="false"/>
-  <settings defaultResolver="${resolvers}"/>
+
+  <property name = "palantir" value="https://dl.bintray.com/palantir/releases" override="false"/>
+
+    <settings defaultResolver="${resolvers}"/>
 
   <resolvers>
+    <ibiblio name="palantir" root="https://dl.bintray.com/palantir/releases"
+         pattern="${maven2.pattern.ext}" m2compatible="true"/>
     <ibiblio name="maven2" root="${repo.maven.org}"
         pattern="${maven2.pattern.ext}" m2compatible="true"/>
     <ibiblio name="datanucleus" root="${www.datanucleus.org}"
@@ -86,6 +91,7 @@ under the License.
       <resolver ref="cloudera-staging"/>
       <resolver ref="maven2"/>
       <resolver ref="conjars"/>
+      <resolver ref = "palantir" />
     </chain>
 
     <chain name="internal" dual="true">

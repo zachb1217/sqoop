@@ -61,6 +61,12 @@ under the License.
     <artifact conf="master"/>
   </publications>
   <dependencies>
+    <dependency org="com.palantir.docker.compose" name="docker-compose-rule-core" rev="0.32.0" conf="test->default" >
+      <artifact name="docker-compose-rule-core" ext="jar" />
+    </dependency>
+    <dependency org="com.palantir.docker.compose" name="docker-compose-rule-junit4" rev="0.32.0" conf="test->default" >
+      <artifact name="docker-compose-rule-junit4" ext="jar" />
+    </dependency>
     <!-- Dependencies for Hadoop 2.6.0 -->
     <dependency org="org.apache.hadoop" name="hadoop-common"
       rev="${hadoop.version}" conf="common->default">

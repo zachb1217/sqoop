@@ -27,7 +27,9 @@ import com.cloudera.sqoop.testutil.CommonArgs;
 
 import com.palantir.docker.compose.DockerComposeRule;
 import com.palantir.docker.compose.configuration.ProjectName;
+import com.palantir.docker.compose.connection.DockerMachine;
 import com.palantir.docker.compose.connection.DockerPort;
+import com.palantir.docker.compose.connection.waiting.HealthCheck;
 import com.palantir.docker.compose.connection.waiting.HealthChecks;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,13 +43,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public class JobToolTestDockerized extends BaseSqoopTestCase {
 
@@ -64,18 +70,17 @@ public class JobToolTestDockerized extends BaseSqoopTestCase {
 
     @ClassRule
     public static DockerComposeRule docker = DockerComposeRule.builder()
-            .file("src/test/resources/docker-compose.yml")
+            .file("src/test/resources/docker-compose-postgres.yml")
             .projectName(ProjectName.random())
-            .waitingForService(MYSQL, HealthChecks.toHaveAllPortsOpen())
             .build();
 
 
     @BeforeClass
     public static void dockerInit() {
-        DockerPort mysql = docker.containers()
-                .container(MYSQL)
-                .port(DATABASE_PORT);
-        metaConnectString = "jdbc:mysql://"+ mysql.getIp() + ":"  + mysql.getExternalPort() + "/metastore";
+        DockerPort postgres = docker.containers()
+                .container("postgres")
+                .port(5432);
+        metaConnectString = postgres.inFormat("jdbc:postgresql://$HOST:$EXTERNAL_PORT/metastore");
         metaUser = "root";
         metaPass = "example";
 
@@ -230,4 +235,6 @@ public class JobToolTestDockerized extends BaseSqoopTestCase {
         String[] argsDelete = getDeleteJob(metaConnectString, metaUser, metaPass);
         assertEquals(0, Sqoop.runSqoop(sqoopExec, argsDelete));
     }
+
+
 }

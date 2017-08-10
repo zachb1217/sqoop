@@ -1,0 +1,13 @@
+version: '3'
+services:
+  oracle:
+    image: wnameless/oracle-xe-11g
+    ports:
+      - 49161:1521
+    environment:
+      ORACLE_SID: 'XE'
+#    healthcheck:
+#            test: ["CMD", "if [ ! -z $ORACLE_SID ]", "then echo 'done!' && exit 0", "else echo 'not yet' && exit 1", "fi"]
+#            interval: 30s
+#            timeout: 1s
+#            retries: 1

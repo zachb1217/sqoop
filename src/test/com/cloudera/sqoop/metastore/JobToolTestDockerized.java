@@ -69,20 +69,20 @@ public class JobToolTestDockerized extends BaseSqoopTestCase {
     private ConnManager cm;
 
     @ClassRule
-    public static DockerComposeRule docker = DockerComposeRule.builder()
-            .file("src/test/resources/docker-compose-postgres.yml")
-            .projectName(ProjectName.random())
-            .build();
+        public static DockerComposeRule docker = DockerComposeRule.builder()
+                .file("src/test/resources/docker-compose-oracle.yml")
+                .projectName(ProjectName.random())
+                .build();
 
 
-    @BeforeClass
-    public static void dockerInit() {
-        DockerPort postgres = docker.containers()
-                .container("postgres")
-                .port(5432);
-        metaConnectString = postgres.inFormat("jdbc:postgresql://$HOST:$EXTERNAL_PORT/metastore");
-        metaUser = "root";
-        metaPass = "example";
+        @BeforeClass
+        public static void dockerInit() {
+            DockerPort postgres = docker.containers()
+                    .container("oracle")
+                    .port(1521);
+            metaConnectString = "jdbc:oracle:thin:@//localhost:49161/xe";
+            metaUser = "system";
+            metaPass = "oracle";
 
 
     }

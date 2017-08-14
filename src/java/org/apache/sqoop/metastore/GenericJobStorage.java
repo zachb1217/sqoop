@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.cloudera.sqoop.manager.ConnManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,6 +41,7 @@ import com.cloudera.sqoop.SqoopOptions;
 import com.cloudera.sqoop.metastore.JobData;
 import com.cloudera.sqoop.metastore.JobStorage;
 import com.cloudera.sqoop.tool.SqoopTool;
+import org.apache.sqoop.manager.DefaultManagerFactory;
 
 /**
  * JobStorage implementation that uses a database to
@@ -162,6 +164,7 @@ public class GenericJobStorage extends JobStorage {
   private String metastorePassword;
   private Connection connection;
   private String driverClass;
+  private ConnManager connManager;
 
   protected Connection getConnection() {
     return this.connection;
@@ -208,20 +211,22 @@ public class GenericJobStorage extends JobStorage {
   }
 
   protected void init() throws IOException {
-    try {
-      // Load/initialize the JDBC driver.
-      Class.forName(driverClass);
-    } catch (ClassNotFoundException cnfe) {
-      throw new IOException("Could not load JDBC driver", cnfe);
-    }
+//    try {
+//      // Load/initialize the JDBC driver.
+//      Class.forName(driverClass);
+//    } catch (ClassNotFoundException cnfe) {
+//      throw new IOException("Could not load JDBC driver", cnfe);
+//    }
 
     try {
-      if (null == metastoreUser) {
-        this.connection = DriverManager.getConnection(metastoreConnectStr);
-      } else {
-        this.connection = DriverManager.getConnection(metastoreConnectStr,
-            metastoreUser, metastorePassword);
-      }
+//      if (null == metastoreUser) {
+//        this.connection = DriverManager.getConnection(metastoreConnectStr);
+//      } else {
+//        this.connection = DriverManager.getConnection(metastoreConnectStr,
+//            metastoreUser, metastorePassword);
+//      }
+      connManager = createConnManager();
+      connection = connManager.getConnection();
 
       connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
       connection.setAutoCommit(false);
@@ -540,25 +545,13 @@ public class GenericJobStorage extends JobStorage {
     return conf.get(ROOT_TABLE_NAME_KEY, DEFAULT_ROOT_TABLE_NAME);
   }
 
-  private boolean tableExists(String table) throws SQLException {
-    LOG.debug("Checking for table: " + table);
-    DatabaseMetaData dbmd = connection.getMetaData();
-    String [] tableTypes = { "TABLE" };
-    ResultSet rs = dbmd.getTables(null, null, null, tableTypes);
-    if (null != rs) {
-      try {
-        while (rs.next()) {
-          if (table.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-            LOG.debug("Found table: " + table);
-            return true;
-          }
-        }
-      } finally {
-        rs.close();
+  private boolean tableExists(String tableToCheck) throws SQLException {
+    String[] tables = connManager.listTables();
+    for (String table : tables) {
+      if (table.equals(tableToCheck)) {
+        return true;
       }
     }
-
-    LOG.debug("Could not find table.");
     return false;
   }
 
@@ -869,5 +862,17 @@ public class GenericJobStorage extends JobStorage {
       setV0Property(jobName, propClass, key, val);
     }
   }
+
+  private ConnManager createConnManager() {
+    SqoopOptions sqoopOptions = new SqoopOptions();
+    sqoopOptions.setConnectString(metastoreConnectStr);
+    sqoopOptions.setUsername(metastoreUser);
+    sqoopOptions.setPassword(metastorePassword);
+    JobData jd = new JobData();
+    jd.setSqoopOptions(sqoopOptions);
+    DefaultManagerFactory dmf = new DefaultManagerFactory();
+    return dmf.accept(jd);
+  }
+
 }
 

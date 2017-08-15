@@ -112,8 +112,8 @@ public class JobToolTest extends BaseSqoopTestCase {
 
         try {
             Statement statement = conn.createStatement();
-            statement.execute("DROP TABLE SQOOP_ROOT");
-            statement.execute("DROP TABLE SQOOP_SESSIONS");
+            statement.execute("DROP TABLE " + cm.escapeTableName("SQOOP_ROOT"));
+            statement.execute("DROP TABLE " + cm.escapeTableName("SQOOP_SESSIONS"));
             conn.commit();
         } catch (Exception e) {
             LOG.error("Failed to clear metastore database");

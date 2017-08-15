@@ -180,8 +180,8 @@ public class SavedJobsTest {
     try {
       String [] tables = manager.listTables();
       for (String table : tables) {
-        if(table.equalsIgnoreCase("SQOOP_ROOT") || table.equalsIgnoreCase("SQOOP_SESSIONS")){
-          s.execute("DROP TABLE " + table);
+        if(table.equals("SQOOP_ROOT") || table.equals("SQOOP_SESSIONS")){
+          s.execute("DROP TABLE " + manager.escapeTableName(table));
         }
       }
 

@@ -48,7 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-//@RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class MetaConnectIncrementalImportTest extends BaseSqoopTestCase {
 
     public static final Log LOG = LogFactory
@@ -57,45 +57,45 @@ public class MetaConnectIncrementalImportTest extends BaseSqoopTestCase {
     private static MySQLTestUtils mySQLTestUtils = new MySQLTestUtils();
     private static MSSQLTestUtils msSQLTestUtils = new MSSQLTestUtils();
 
-//    @Parameterized.Parameters(name = "metaConnectString = {0}, metaUser = {1}, metaPass = {2}")
-//    public static Iterable<? extends Object> dbConnectParameters() {
-//        return Arrays.asList(
-//                new Object[] {
-//                        mySQLTestUtils.getHostUrl(), mySQLTestUtils.getUserName(),
-//                        mySQLTestUtils.getUserPass()
-//                },
-//                new Object[] {
-//                        OracleUtils.CONNECT_STRING, OracleUtils.ORACLE_USER_NAME,
-//                        OracleUtils.ORACLE_USER_PASS
-//                },
-//                new Object[] {
-//                        msSQLTestUtils.getDBConnectString(), msSQLTestUtils.getDBUserName(),
-//                        msSQLTestUtils.getDBPassWord()
-//                },
-//                new Object[] {
-//                        System.getProperty(
-//                                "sqoop.test.postgresql.connectstring.host_url",
-//                                "jdbc:postgresql://localhost/"),
-//                        System.getProperty(
-//                                "sqoop.test.postgresql.username",
-//                                "sqooptest"),
-//                        System.getProperty(
-//                                "sqoop.test.postgresql.password"),
-//                },
-//                new Object[] {
-//                        System.getProperty(
-//                                "sqoop.test.db2.connectstring.host_url",
-//                                "jdbc:db2://db2host:50000"),
-//                        System.getProperty(
-//                                "sqoop.test.db2.connectstring.username",
-//                                "SQOOP"),
-//                        System.getProperty(
-//                                "sqoop.test.db2.connectstring.password",
-//                                "SQOOP"),
-//                },
-//                new Object[] { "jdbc:hsqldb:mem:sqoopmetastore", "SA" , "" }
-//        );
-//    }
+    @Parameterized.Parameters(name = "metaConnectString = {0}, metaUser = {1}, metaPass = {2}")
+    public static Iterable<? extends Object> dbConnectParameters() {
+        return Arrays.asList(
+                new Object[] {
+                        mySQLTestUtils.getHostUrl(), mySQLTestUtils.getUserName(),
+                        mySQLTestUtils.getUserPass()
+                },
+                new Object[] {
+                        OracleUtils.CONNECT_STRING, OracleUtils.ORACLE_USER_NAME,
+                        OracleUtils.ORACLE_USER_PASS
+                },
+                new Object[] {
+                        msSQLTestUtils.getDBConnectString(), msSQLTestUtils.getDBUserName(),
+                        msSQLTestUtils.getDBPassWord()
+                },
+                new Object[] {
+                        System.getProperty(
+                                "sqoop.test.postgresql.connectstring.host_url",
+                                "jdbc:postgresql://localhost/"),
+                        System.getProperty(
+                                "sqoop.test.postgresql.username",
+                                "sqooptest"),
+                        System.getProperty(
+                                "sqoop.test.postgresql.password"),
+                },
+                new Object[] {
+                        System.getProperty(
+                                "sqoop.test.db2.connectstring.host_url",
+                                "jdbc:db2://db2host:50000"),
+                        System.getProperty(
+                                "sqoop.test.db2.connectstring.username",
+                                "SQOOP"),
+                        System.getProperty(
+                                "sqoop.test.db2.connectstring.password",
+                                "SQOOP"),
+                },
+                new Object[] { "jdbc:hsqldb:mem:sqoopmetastore", "SA" , "" }
+        );
+    }
 
     @Before
     public void setUp() {
@@ -114,13 +114,11 @@ public class MetaConnectIncrementalImportTest extends BaseSqoopTestCase {
     private Connection connMeta;
     private ConnManager cm;
 
-
-    public MetaConnectIncrementalImportTest() {
-        this.metaConnectString = "jdbc:oracle:thin:@//localhost:1521/ORCLCDB";
-        this.metaUser = "SYSTEM";
-        this.metaPass = "Sqoop12345";
+    public MetaConnectIncrementalImportTest(String metaConnectString, String metaUser, String metaPass) {
+        this.metaConnectString = metaConnectString;
+        this.metaUser = metaUser;
+        this.metaPass = metaPass;
     }
-
 
     protected String[] getIncrementalJob(String metaConnectString, String metaUser, String metaPass) {
         List<String> args = new ArrayList<>();
@@ -183,8 +181,8 @@ public class MetaConnectIncrementalImportTest extends BaseSqoopTestCase {
         try {
             //Resets the metastore schema
             Statement metastoreStatement = connMeta.createStatement();
-            metastoreStatement.execute("DROP TABLE SQOOP_ROOT");
-            metastoreStatement.execute("DROP TABLE SQOOP_SESSIONS");
+            metastoreStatement.execute("DROP TABLE " + cm.escapeTableName("SQOOP_ROOT"));
+            metastoreStatement.execute("DROP TABLE " + cm.escapeTableName("SQOOP_SESSIONS"));
             connMeta.commit();
         }
         catch (Exception e) {
@@ -208,7 +206,7 @@ public class MetaConnectIncrementalImportTest extends BaseSqoopTestCase {
         //Ensures the saveIncrementalState saved the right row
         Statement getSaveIncrementalState = connMeta.createStatement();
         ResultSet lastCol = getSaveIncrementalState.executeQuery(
-                "SELECT propVal FROM sqoop_sessions WHERE propname = 'incremental.last.value'");
+                "SELECT propVal FROM " + cm.escapeTableName("SQOOP_SESSIONS") + " WHERE propname = 'incremental.last.value'");
         lastCol.next();
         assertEquals(1, lastCol.getInt("propVal"));
 
@@ -227,7 +225,7 @@ public class MetaConnectIncrementalImportTest extends BaseSqoopTestCase {
         //Ensures the last incremental value is updated correctly.
         Statement getSaveIncrementalState2 = connMeta.createStatement();
         ResultSet lastCol2 = getSaveIncrementalState2.executeQuery(
-                "SELECT propVal FROM sqoop_sessions WHERE propName = 'incremental.last.value'");
+                "SELECT propVal FROM " + cm.escapeTableName("SQOOP_SESSIONS") + " WHERE propName = 'incremental.last.value'");
         lastCol2.next();
         assertEquals(2, lastCol2.getInt("propVal"));
 

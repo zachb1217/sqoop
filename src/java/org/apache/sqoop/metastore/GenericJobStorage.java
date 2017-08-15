@@ -20,8 +20,6 @@ package org.apache.sqoop.metastore;
 import java.io.IOException;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -371,7 +369,7 @@ public class GenericJobStorage extends JobStorage {
 
   private boolean jobExists(String jobName) throws SQLException {
     PreparedStatement s = connection.prepareStatement(
-        "SELECT COUNT(job_name) FROM " + this.jobTableName
+        "SELECT COUNT(job_name) FROM " + connManager.escapeTableName(this.jobTableName)
         + " WHERE job_name = ? GROUP BY job_name");
     ResultSet rs = null;
     try {
@@ -404,7 +402,7 @@ public class GenericJobStorage extends JobStorage {
       } else {
         LOG.debug("Deleting job: " + jobName);
         PreparedStatement s = connection.prepareStatement("DELETE FROM "
-            + this.jobTableName + " WHERE job_name = ?");
+            + connManager.escapeTableName(this.jobTableName) + " WHERE job_name = ?");
         try {
           s.setString(1, jobName);
           s.executeUpdate();
@@ -512,7 +510,7 @@ public class GenericJobStorage extends JobStorage {
     ResultSet rs = null;
     try {
       PreparedStatement s = connection.prepareStatement(
-          "SELECT DISTINCT job_name FROM " + this.jobTableName);
+          "SELECT DISTINCT job_name FROM " + connManager.escapeTableName(this.jobTableName));
       try {
         rs = s.executeQuery();
         ArrayList<String> jobs = new ArrayList<String>();
@@ -542,7 +540,11 @@ public class GenericJobStorage extends JobStorage {
   // Determine the name to use for the root metadata table.
   private String getRootTableName() {
     Configuration conf = getConf();
-    return conf.get(ROOT_TABLE_NAME_KEY, DEFAULT_ROOT_TABLE_NAME);
+    return conf.get(ROOT_TABLE_NAME_KEY, DEFAULT_ROOT_TABLE_NAME).toUpperCase();
+  }
+
+  private String getEscapedRootTableName() {
+    return connManager.escapeTableName(getRootTableName());
   }
 
   private boolean tableExists(String tableToCheck) throws SQLException {
@@ -568,7 +570,7 @@ public class GenericJobStorage extends JobStorage {
     // not a SQL-injection attack vector.
     Statement s = connection.createStatement();
     try {
-      s.executeUpdate("CREATE TABLE " + rootTableName + " ("
+      s.executeUpdate("CREATE TABLE " + getEscapedRootTableName() + " ("
           + "version INT NOT NULL, "
           + "propname VARCHAR(128) NOT NULL, "
           + "propval VARCHAR(256), "
@@ -598,12 +600,12 @@ public class GenericJobStorage extends JobStorage {
     try {
       if (null == version) {
         s = connection.prepareStatement(
-          "SELECT propval FROM " + getRootTableName()
+          "SELECT propval FROM " + getEscapedRootTableName()
           + " WHERE version IS NULL AND propname = ?");
         s.setString(1, propertyName);
       } else {
         s = connection.prepareStatement(
-          "SELECT propval FROM " + getRootTableName() + " WHERE version = ? "
+          "SELECT propval FROM " + getEscapedRootTableName() + " WHERE version = ? "
           + " AND propname = ?");
         s.setInt(1, version);
         s.setString(2, propertyName);
@@ -646,11 +648,11 @@ public class GenericJobStorage extends JobStorage {
     String curVal = getRootProperty(propertyName, version);
     if (null == curVal) {
       // INSERT the row.
-      s = connection.prepareStatement("INSERT INTO " + getRootTableName()
+      s = connection.prepareStatement("INSERT INTO " + getEscapedRootTableName()
           + " (propval, propname, version) VALUES ( ? , ? , ? )");
     } else {
       // UPDATE an existing row with non-null version.
-      s = connection.prepareStatement("UPDATE " + getRootTableName()
+      s = connection.prepareStatement("UPDATE " + getEscapedRootTableName()
           + " SET propval = ? WHERE  propname = ? AND version = ?");
     }
 
@@ -689,7 +691,7 @@ public class GenericJobStorage extends JobStorage {
     LOG.debug("Creating job storage table: " + curTableName);
     Statement s = connection.createStatement();
     try {
-      s.executeUpdate("CREATE TABLE " + curTableName + " ("
+      s.executeUpdate("CREATE TABLE " + connManager.escapeTableName(curTableName) + " ("
           + "job_name VARCHAR(64) NOT NULL, "
           + "propname VARCHAR(128) NOT NULL, "
           + "propval VARCHAR(1024), "
@@ -750,12 +752,12 @@ public class GenericJobStorage extends JobStorage {
       String curValue = getV0Property(jobName, propClass, propName);
       if (null == curValue) {
         // Property is not yet set.
-        s = connection.prepareStatement("INSERT INTO " + this.jobTableName
+        s = connection.prepareStatement("INSERT INTO " + connManager.escapeTableName(this.jobTableName)
             + " (propval, job_name, propclass, propname) "
             + "VALUES (?, ?, ?, ?)");
       } else {
         // Overwrite existing property.
-        s = connection.prepareStatement("UPDATE " + this.jobTableName
+        s = connection.prepareStatement("UPDATE " + connManager.escapeTableName(this.jobTableName)
             + " SET propval = ? WHERE job_name = ? AND propclass = ? "
             + "AND propname = ?");
       }
@@ -784,7 +786,7 @@ public class GenericJobStorage extends JobStorage {
 
     ResultSet rs = null;
     PreparedStatement s = connection.prepareStatement(
-        "SELECT propval FROM " + this.jobTableName
+        "SELECT propval FROM " + connManager.escapeTableName(this.jobTableName)
         + " WHERE job_name = ? AND propclass = ? AND propname = ?");
 
     try {
@@ -825,7 +827,7 @@ public class GenericJobStorage extends JobStorage {
 
     ResultSet rs = null;
     PreparedStatement s = connection.prepareStatement(
-        "SELECT propname, propval FROM " + this.jobTableName
+        "SELECT propname, propval FROM " + connManager.escapeTableName(this.jobTableName)
         + " WHERE job_name = ? AND propclass = ?");
     try {
       s.setString(1, jobName);

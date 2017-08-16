@@ -77,14 +77,12 @@ public class JobToolTestDockerized extends BaseSqoopTestCase {
 
         @BeforeClass
         public static void dockerInit() {
-            DockerPort postgres = docker.containers()
+        DockerPort oracle = docker.containers()
                     .container("oracle")
                     .port(1521);
-            metaConnectString = "jdbc:oracle:thin:@//localhost:49161/xe";
+            metaConnectString = "jdbc:oracle:thin:@localhost:" + oracle.getExternalPort() + ":metastore";
             metaUser = "system";
-            metaPass = "oracle";
-
-
+            metaPass = "password";
     }
 
     @Before

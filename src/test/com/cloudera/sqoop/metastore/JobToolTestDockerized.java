@@ -69,14 +69,14 @@ public class JobToolTestDockerized extends BaseSqoopTestCase {
     private ConnManager cm;
 
     @ClassRule
-        public static DockerComposeRule docker = DockerComposeRule.builder()
-                .file("src/test/resources/docker-compose-oracle.yml")
-                .projectName(ProjectName.random())
-                .build();
+    public static DockerComposeRule docker = DockerComposeRule.builder()
+            .file("src/test/resources/docker-compose-oracle.yml")
+            .projectName(ProjectName.random())
+            .build();
 
 
-        @BeforeClass
-        public static void dockerInit() {
+    @BeforeClass
+    public static void dockerInit() {
         DockerPort oracle = docker.containers()
                     .container("oracle")
                     .port(1521);

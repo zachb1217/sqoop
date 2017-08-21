@@ -1,0 +1,9 @@
+version: '3'
+services:
+  db2:
+    image: ibmcom/db2express-c
+    environment:
+      DB2INST1_PASSWORD: abcd1234
+      LICENSE: accept
+    ports:
+      - 50000

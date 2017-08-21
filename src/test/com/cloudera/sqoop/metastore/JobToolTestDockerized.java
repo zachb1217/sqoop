@@ -70,7 +70,7 @@ public class JobToolTestDockerized extends BaseSqoopTestCase {
 
     @ClassRule
     public static DockerComposeRule docker = DockerComposeRule.builder()
-            .file("src/test/resources/docker-compose-oracle.yml")
+            .file("src/test/resources/docker-compose-sqlserver.yml")
             .projectName(ProjectName.random())
             .build();
 
@@ -78,11 +78,11 @@ public class JobToolTestDockerized extends BaseSqoopTestCase {
     @BeforeClass
     public static void dockerInit() {
         DockerPort oracle = docker.containers()
-                    .container("oracle")
-                    .port(1521);
-            metaConnectString = "jdbc:oracle:thin:@localhost:" + oracle.getExternalPort() + ":metastore";
-            metaUser = "system";
-            metaPass = "password";
+                    .container("mssql")
+                    .port(1433);
+            metaConnectString = "jdbc:sqlserver://localhost:" + oracle.getExternalPort();
+            metaUser = "sa";
+            metaPass = "Password1234";
     }
 
     @Before

@@ -6,8 +6,4 @@ services:
        - ORACLE_SID=metastore
        - ORACLE_PWD=password
     ports:
-      - 1521:1521
-#    healthcheck:
-#        test: ["CMD", "if [ ! -z $ORACLE_SID ]", "then echo 'done!' && exit 0", "else echo 'not yet' && exit 1", "fi"]
-#        timeout: 10s
-#        retries: 5
+      - 1521

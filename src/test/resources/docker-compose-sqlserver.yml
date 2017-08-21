@@ -1,0 +1,13 @@
+version: '3'
+services:
+  mssql:
+    image: microsoft/mssql-server-linux
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: Password1234
+    ports:
+      - 1433
+#    healthcheck:
+#      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd" ,"ping", "localhost"]
+#      timeout: 10s
+#      retries: 5
